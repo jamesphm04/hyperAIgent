@@ -29,10 +29,13 @@ function isCodeBlock(str: string) {
 const ChatItem = ({
   content,
   role,
+  image,
 }: {
   content: string;
   role: "user" | "assistant";
+  image?: string;
 }) => {
+  console.log(content, image);
   const messageBlocks = extractCodeFromString(content);
   const auth = useAuth();
   return role == "assistant" ? (
@@ -51,7 +54,10 @@ const ChatItem = ({
       </Avatar>
       <Box>
         {!messageBlocks && (
-          <Typography sx={{ fontSize: "20px" }}>{content}</Typography>
+          <>
+            {image && <img src={image} alt="uploaded" width="200px" />}
+            <Typography sx={{ fontSize: "20px" }}>{content}</Typography>
+          </>
         )}
         {messageBlocks &&
           messageBlocks.length &&
@@ -78,11 +84,13 @@ const ChatItem = ({
     >
       <Avatar sx={{ ml: "0", bgcolor: "black", color: "white" }}>
         {auth?.user?.name[0]}
-        {auth?.user?.name.split(" ")[1][0]}
       </Avatar>
       <Box>
         {!messageBlocks && (
-          <Typography sx={{ fontSize: "20px" }}>{content}</Typography>
+          <>
+            {image && <img src={image} alt="uploaded" width="200px" />}
+            <Typography sx={{ fontSize: "20px" }}>{content}</Typography>
+          </>
         )}
         {messageBlocks &&
           messageBlocks.length &&

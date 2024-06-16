@@ -1,9 +1,9 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { SetStateAction, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Box, Avatar, Typography, Button, IconButton } from "@mui/material";
 import red from "@mui/material/colors/red";
 import { useAuth } from "../context/AuthContext";
 import ChatItem from "../components/chat/ChatItem";
-import { IoMdSend } from "react-icons/io";
+import { IoMdSend, IoMdAttach, IoMdClose } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import {
   deleteUserChats,
@@ -11,26 +11,36 @@ import {
   sendChatRequest,
 } from "../helpers/api-communicator";
 import toast from "react-hot-toast";
-type Message = {
+export type Message = {
   role: "user" | "assistant";
   content: string;
+  image?: string;
 };
 const Chat = () => {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const auth = useAuth();
+
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
   const handleSubmit = async () => {
+
     const content = inputRef.current?.value as string;
     if (inputRef && inputRef.current) {
       inputRef.current.value = "";
     }
-    const newMessage: Message = { role: "user", content };
-    setChatMessages((prev) => [...prev, newMessage]);
-    const chatData = await sendChatRequest(content);
-    setChatMessages([...chatData.chats]);
-    //
+    try {
+      const chatData = await sendChatRequest(content, uploadedImage);
+      setChatMessages(chatData.chats as Message[]);
+      setUploadedImage(null);
+    } catch (error) {
+      console.error("Error sending chat request:", error);
+      toast.error("Failed to send message");
+    }
   };
+
   const handleDeleteChats = async () => {
     try {
       toast.loading("Deleting Chats", { id: "deletechats" });
@@ -42,6 +52,25 @@ const Chat = () => {
       toast.error("Deleting chats failed", { id: "deletechats" });
     }
   };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setUploadedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setUploadedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   useLayoutEffect(() => {
     if (auth?.isLoggedIn && auth.user) {
       toast.loading("Loading Chats", { id: "loadchats" });
@@ -100,7 +129,6 @@ const Chat = () => {
             }}
           >
             {auth?.user?.name[0]}
-            {auth?.user?.name.split(" ")[1][0]}
           </Avatar>
           <Typography sx={{ mx: "auto", fontFamily: "work sans" }}>
             You are talking to a ChatBOT
@@ -163,7 +191,7 @@ const Chat = () => {
         >
           {chatMessages.map((chat, index) => (
             //@ts-ignore
-            <ChatItem content={chat.content} role={chat.role} key={index} />
+            <ChatItem content={chat.content} role={chat.role} key={index} image={chat.image} />
           ))}
         </Box>
         <div
@@ -172,6 +200,7 @@ const Chat = () => {
             borderRadius: 8,
             backgroundColor: "rgb(17,27,39)",
             display: "flex",
+            alignItems: "center",
             margin: "auto",
           }}
         >
@@ -189,9 +218,36 @@ const Chat = () => {
               fontSize: "20px",
             }}
           />
+
+          {uploadedImage && (
+            <div style={{ position: "relative", display: "inline-block" }}>
+              <img
+                src={uploadedImage}
+                alt="uploaded"
+                style={{ height: "50px", marginRight: "10px" }}
+              />
+              <IconButton
+                onClick={handleRemoveImage}
+                style={{ position: "absolute", top: -20, right: -10, color: "white", width: "30px", height: "30px" }}
+              >
+                <IoMdClose />
+              </IconButton>
+            </div>
+          )}
+
           <IconButton onClick={handleSubmit} sx={{ color: "white", mx: 1 }}>
             <IoMdSend />
           </IconButton>
+          <IconButton onClick={() => fileInputRef.current?.click()} sx={{ color: "white", mx: 1 }}>
+            <IoMdAttach />
+          </IconButton>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".png"
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
         </div>
       </Box>
     </Box>
