@@ -1,24 +1,16 @@
-package com.db.hyperAIgent.domain.dto;
+package com.db.hyperAIgent.domain.dtos;
 
 import jakarta.persistence.Column;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class QAPairDto {
+public class ImageDto {
     private Long id;
-    private String question;
-    private String answer;
-    private ChatDto chat;
+    private byte[] image;
+    private String role;
+    private QAPairDto qa_pair;
 
     @CreatedDate
     @Column(updatable = false)
@@ -28,5 +20,4 @@ public class QAPairDto {
     private LocalDateTime updatedAt;
 
     private LocalDateTime deletedAt;
-
 }

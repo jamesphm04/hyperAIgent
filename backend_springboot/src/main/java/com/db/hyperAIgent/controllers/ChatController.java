@@ -1,21 +1,22 @@
 package com.db.hyperAIgent.controllers;
 
-import com.db.hyperAIgent.domain.dto.ChatDto;
-import com.db.hyperAIgent.domain.dto.QAPairDto;
+import com.db.hyperAIgent.domain.dtos.ChatDto;
+import com.db.hyperAIgent.domain.dtos.QAPairDto;
+import com.db.hyperAIgent.domain.dtos.openai.ChatResponse;
 import com.db.hyperAIgent.domain.entities.ChatEntity;
 import com.db.hyperAIgent.domain.entities.QAPairEntity;
 import com.db.hyperAIgent.domain.entities.UserEntity;
 import com.db.hyperAIgent.mappers.Mapper;
+import com.db.hyperAIgent.mappers.impl.openai.ResponseChatMapper;
 import com.db.hyperAIgent.services.ChatService;
+import com.db.hyperAIgent.services.OpenAIService;
 import com.db.hyperAIgent.services.QAPairService;
 import com.db.hyperAIgent.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -23,41 +24,52 @@ public class ChatController {
     final private UserService userService;
     final private ChatService chatService;
     final private QAPairService qaPairService;
+    final private OpenAIService openAIService;
 
     final private Mapper<ChatEntity, ChatDto> chatMapper;
     final private Mapper<QAPairEntity, QAPairDto> qaPairMapper;
+    final private ResponseChatMapper responseChatMapper;
 
     public ChatController(ChatService chatService,
                           UserService userService,
                           QAPairService qaPairService,
+                          OpenAIService openAIService,
+
                           Mapper<ChatEntity, ChatDto> chatMapper,
-                          Mapper<QAPairEntity, QAPairDto> qaPairMapper ) {
+                          Mapper<QAPairEntity, QAPairDto> qaPairMapper,
+                          ResponseChatMapper responseChatMapper) {
         this.chatService = chatService;
         this.userService = userService;
         this.qaPairService = qaPairService;
+        this.openAIService = openAIService;
 
         this.chatMapper = chatMapper;
         this.qaPairMapper = qaPairMapper;
+        this.responseChatMapper = responseChatMapper;
     }
 
     @PostMapping(path = "/api/v1/users/{user_id}/chats")
-    public ResponseEntity<ChatDto> createChat(@RequestBody QAPairDto qaPairDto, @PathVariable("user_id") Long user_id) {
+    //start asking question
+    public ResponseEntity<ChatResponse> createChat(@RequestBody QAPairDto qaPairDto, @PathVariable("user_id") Long user_id) {
         Optional<UserEntity> userEntity = userService.findOne(user_id);
         if (userEntity.isPresent()) {
             QAPairEntity newQAPairEntity = qaPairMapper.mapFrom(qaPairDto);
-            newQAPairEntity.setAnswer("This is a default answer");
+            //call a post request to openai TODO set the prompt
+            List<QAPairEntity> history = new ArrayList<>(Collections.singletonList(newQAPairEntity));
+            openAIService.getResponse(history);
 
             ChatEntity newChatEntity = ChatEntity.builder()
                     .user(userEntity.get())
-                    .topic("This is a default topic")
+                    .topic("This is a default topic") //TODO get the topic
                     .build();
 
             newQAPairEntity.setChat(newChatEntity);
 
             ChatEntity savedChatEntity = chatService.create(newChatEntity);
-            QAPairEntity savedQAPairEntity = qaPairService.create(newQAPairEntity);
+            qaPairService.create(newQAPairEntity);
 
-            return new ResponseEntity<>(chatMapper.mapTo(savedChatEntity), HttpStatus.CREATED);
+            ChatResponse response = responseChatMapper.mapToResponse(savedChatEntity, history);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

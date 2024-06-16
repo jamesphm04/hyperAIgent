@@ -1,8 +1,6 @@
 package com.db.hyperAIgent.mappers.impl;
 
-import com.db.hyperAIgent.domain.dto.ChatDto;
-import com.db.hyperAIgent.domain.dto.QAPairDto;
-import com.db.hyperAIgent.domain.entities.ChatEntity;
+import com.db.hyperAIgent.domain.dtos.QAPairDto;
 import com.db.hyperAIgent.domain.entities.QAPairEntity;
 import com.db.hyperAIgent.mappers.Mapper;
 import org.modelmapper.ModelMapper;

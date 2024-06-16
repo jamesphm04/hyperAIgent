@@ -1,4 +1,4 @@
-package com.db.hyperAIgent.domain.dto;
+package com.db.hyperAIgent.domain.dtos;
 
 import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;

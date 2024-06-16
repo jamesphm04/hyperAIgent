@@ -1,6 +1,6 @@
 package com.db.hyperAIgent.mappers.impl;
 
-import com.db.hyperAIgent.domain.dto.UserDto;
+import com.db.hyperAIgent.domain.dtos.UserDto;
 import com.db.hyperAIgent.domain.entities.UserEntity;
 import com.db.hyperAIgent.mappers.Mapper;
 import org.modelmapper.ModelMapper;

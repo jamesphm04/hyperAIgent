@@ -12,3 +12,5 @@
 /backend_springboot/*.war
 /backend_springboot/*.iml
 /backend_springboot/.idea/
+
+/backend_springboot/src/main/resources/application.properties

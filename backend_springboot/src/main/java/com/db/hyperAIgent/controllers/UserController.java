@@ -1,7 +1,7 @@
 package com.db.hyperAIgent.controllers;
 
 import com.db.hyperAIgent.domain.entities.UserEntity;
-import com.db.hyperAIgent.domain.dto.UserDto;
+import com.db.hyperAIgent.domain.dtos.UserDto;
 import com.db.hyperAIgent.mappers.Mapper;
 import com.db.hyperAIgent.services.UserService;
 import org.springframework.http.HttpStatus;
